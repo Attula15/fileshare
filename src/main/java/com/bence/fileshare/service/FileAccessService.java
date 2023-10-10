@@ -3,10 +3,14 @@ package com.bence.fileshare.service;
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.utils.FileSizeConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,5 +53,23 @@ public class FileAccessService {
         returnable.setFolderSize(FileSizeConverter.convert(FileUtils.sizeOfDirectory(folder)));
 
         return returnable;
+    }
+
+    public Resource downloadFile(String filePath) throws MalformedURLException, AccessDeniedException, FileExistsException {
+        File file = new File(filePath);
+
+        if(file.exists()){
+            if(file.canRead()){
+                return new UrlResource(file.toURI());
+            }
+            else{
+                log.error("Cannot access file: " + filePath);
+                throw new AccessDeniedException("Cannot access file: " + filePath);
+            }
+        }
+        else{
+            log.error("The file does not exists: " + filePath);
+            throw new FileExistsException("The file does not exists: " + filePath);
+        }
     }
 }
