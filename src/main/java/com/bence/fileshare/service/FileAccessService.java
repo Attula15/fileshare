@@ -2,15 +2,15 @@ package com.bence.fileshare.service;
 
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.utils.FileSizeConverter;
+import com.bence.fileshare.utils.ZipClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
-import org.springframework.core.io.Resource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.net.MalformedURLException;
+import java.io.*;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +19,15 @@ import java.util.Map;
 @Service
 @Slf4j
 public class FileAccessService {
+    @Value("${my_root_directory}")
+    private String rootDirectory;
+
     public FolderInfo getInfo(String folderPath) throws AccessDeniedException {
+        if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
+            log.warn("The root directory has not been set.");
+        }
+        log.info(rootDirectory);
+
         File folder = new File(folderPath);
         FolderInfo returnable = new FolderInfo();
 
@@ -55,12 +63,15 @@ public class FileAccessService {
         return returnable;
     }
 
-    public Resource downloadFile(String filePath) throws MalformedURLException, AccessDeniedException, FileExistsException {
+    public Object downloadFile(String filePath) throws IOException {
         File file = new File(filePath);
 
         if(file.exists()){
             if(file.canRead()){
-                return new UrlResource(file.toURI());
+                if(!file.isDirectory()){
+                    return new UrlResource(file.toURI());
+                }
+                return ZipClass.compress(file);
             }
             else{
                 log.error("Cannot access file: " + filePath);

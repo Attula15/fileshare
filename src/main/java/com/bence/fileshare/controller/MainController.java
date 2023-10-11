@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.AccessDeniedException;
 import org.springframework.core.io.Resource;
@@ -37,14 +39,24 @@ public class MainController {
     }
 
     @GetMapping("/downloadFile")
-    public ResponseEntity<Resource> downloadFile(@RequestParam("path") String path) {
+    public ResponseEntity<Object> downloadFile(@RequestParam("path") String path) throws IOException {
         try {
-            Resource resource = fileAccessService.downloadFile(path);
+            Object object = fileAccessService.downloadFile(path);
+            File file = new File(path);
+            if(file.isFile()){
+                Resource resource = (Resource) object;
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource);
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(resource);
+            }
+            else{
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=download.zip")
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(object);
+            }
         }
         catch (Exception ex){
             return ResponseEntity.notFound().build();
