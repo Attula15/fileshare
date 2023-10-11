@@ -4,11 +4,31 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ZipClass {
     private static final int BUFFER_SIZE = 4096;
+
+    public static void addFolderToZip(String parentPath, Path sourceFolder, ZipOutputStream zipOutputStream) throws IOException {
+        Files.list(sourceFolder).forEach(path -> {
+            try {
+                String entryName = parentPath + path.getFileName().toString();
+                if (Files.isDirectory(path)) {
+                    zipOutputStream.putNextEntry(new ZipEntry(entryName + "/"));
+                    addFolderToZip(entryName + "/", path, zipOutputStream);
+                } else {
+                    zipOutputStream.putNextEntry(new ZipEntry(entryName));
+                    Files.copy(path, zipOutputStream);
+                    zipOutputStream.closeEntry();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
 
     public static ByteArrayOutputStream compress(File folder) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -31,14 +51,6 @@ public class ZipClass {
         return baos;
     }
 
-    /**
-     * Adds a directory to the current zip output stream
-     * @param folder the directory to be  added
-     * @param parentFolder the path of parent directory
-     * @param zos the current zip output stream
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
     private static void zipDirectory(File folder, String parentFolder, ZipOutputStream zos) throws FileNotFoundException, IOException {
         for (File file : folder.listFiles()) {
             if (file.isDirectory()) {
@@ -58,13 +70,6 @@ public class ZipClass {
             zos.closeEntry();
         }
     }
-    /**
-     * Adds a file to the current zip output stream
-     * @param file the file to be added
-     * @param zos the current zip output stream
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
     private static void zipFile(File file, ZipOutputStream zos) throws FileNotFoundException, IOException {
         zos.putNextEntry(new ZipEntry(file.getName()));
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));

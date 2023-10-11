@@ -7,14 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
@@ -63,15 +68,12 @@ public class FileAccessService {
         return returnable;
     }
 
-    public Object downloadFile(String filePath) throws IOException {
+    public Resource downloadFile(String filePath) throws IOException {
         File file = new File(filePath);
 
         if(file.exists()){
             if(file.canRead()){
-                if(!file.isDirectory()){
-                    return new UrlResource(file.toURI());
-                }
-                return ZipClass.compress(file);
+                return new UrlResource(file.toURI());
             }
             else{
                 log.error("Cannot access file: " + filePath);
