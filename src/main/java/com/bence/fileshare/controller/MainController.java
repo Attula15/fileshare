@@ -5,32 +5,31 @@ import com.bence.fileshare.service.FileAccessService;
 import com.bence.fileshare.utils.ZipClass;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Path;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api")
 @Slf4j
 public class MainController {
-
-    @Autowired
     private FileAccessService fileAccessService;
+
+    public MainController(FileAccessService fileAccessService){
+        this.fileAccessService = fileAccessService;
+    }
 
     @GetMapping("/getInfo")
     public ResponseEntity<FolderInfo> getFolderContents(@RequestParam("path") String path) {
@@ -42,8 +41,9 @@ public class MainController {
         }
     }
 
-    @GetMapping("/downloadFile")
-    public ResponseEntity<Resource> downloadFile(@RequestParam("path") String path, HttpServletResponse response) throws IOException {
+    @GetMapping("/download")
+    public ResponseEntity<Resource> downloadFile(@RequestParam("path") String path, HttpServletResponse response) {
+        log.info("The following folder/file is being downloaded: " + path);
         try {
             File file = new File(path);
             if(file.isFile()){
@@ -56,7 +56,7 @@ public class MainController {
             }
             else{
                 response.setContentType("application/zip");
-                response.setHeader("Content-Disposition", "attachment; filename=\"folder.zip\"");
+                response.setHeader("Content-Disposition", "attachment; filename=\"downloaded.zip\"");
 
                 ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream());
 
@@ -67,8 +67,25 @@ public class MainController {
                 return ResponseEntity.ok().build();
             }
         }
-        catch (Exception ex){
-            return ResponseEntity.notFound().build();
+        catch (AccessDeniedException ex){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        catch (IOException ex){
+            log.error("IOExcepiton has been thrown: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile multipartFile){
+        try{
+            Path path = fileAccessService.uploadFile(multipartFile);
+            return ResponseEntity.status(HttpStatus.OK).body("The upload was successful. The file has been uploaded to: " + path);
+        }
+        catch (IOException ex){
+            log.error("There was an erro while trying to transfer file to the server: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 }

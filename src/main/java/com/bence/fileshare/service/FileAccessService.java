@@ -2,7 +2,6 @@ package com.bence.fileshare.service;
 
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.utils.FileSizeConverter;
-import com.bence.fileshare.utils.ZipClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
@@ -10,22 +9,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
 public class FileAccessService {
     @Value("${my_root_directory}")
     private String rootDirectory;
+
+    private final String tempRootDirectory = "C:\\testfolder\\testFolder2";
 
     public FolderInfo getInfo(String folderPath) throws AccessDeniedException {
         if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
@@ -84,5 +84,12 @@ public class FileAccessService {
             log.error("The file does not exists: " + filePath);
             throw new FileExistsException("The file does not exists: " + filePath);
         }
+    }
+
+    public Path uploadFile(MultipartFile file) throws IOException {
+        Path uploadPath = Paths.get(tempRootDirectory, file.getOriginalFilename());
+        file.transferTo(uploadPath);
+
+        return uploadPath;
     }
 }
