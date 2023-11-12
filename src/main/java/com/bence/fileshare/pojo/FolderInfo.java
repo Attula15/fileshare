@@ -8,6 +8,6 @@ import java.util.Map;
 
 @Data
 public class FolderInfo {
-    private List<Map<String, File>> filesInDir;
+    private List<OneFile> filesInDir;
     private SizeClass folderSize;
 }

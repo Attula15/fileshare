@@ -1,6 +1,7 @@
 package com.bence.fileshare.controller;
 
 import com.bence.fileshare.pojo.FolderInfo;
+import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.service.FileAccessService;
 import com.bence.fileshare.utils.ZipClass;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("api")
 @Slf4j
+@CrossOrigin
 public class MainController {
     private FileAccessService fileAccessService;
 
@@ -39,6 +41,11 @@ public class MainController {
         catch (AccessDeniedException ex){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+    }
+
+    @GetMapping("/basePath")
+    public ResponseEntity<SimpleString> getBasePath(){
+        return ResponseEntity.ok(fileAccessService.getRootDirectory());
     }
 
     @GetMapping("/download")

@@ -1,6 +1,8 @@
 package com.bence.fileshare.service;
 
 import com.bence.fileshare.pojo.FolderInfo;
+import com.bence.fileshare.pojo.OneFile;
+import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.utils.FileSizeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
@@ -26,6 +28,10 @@ public class FileAccessService {
     private String rootDirectory;
 
     private final String tempRootDirectory = "C:\\testfolder\\testFolder2";
+
+    public SimpleString getRootDirectory(){
+        return new SimpleString(rootDirectory);
+    }
 
     public FolderInfo getInfo(String folderPath) throws AccessDeniedException {
         if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
@@ -54,11 +60,11 @@ public class FileAccessService {
         File[] dirListing = folder.listFiles();
         returnable.setFilesInDir(null);
 
-        List<Map<String, File>> list = new ArrayList<>();
+        List<OneFile> list = new ArrayList<>();
 
         if(dirListing != null){
             for(File file : dirListing){
-                list.add(Map.of(file.isDirectory() ? "Dir" : "File", file));
+                list.add(new OneFile(file.isDirectory(), file.getName()));
             }
             returnable.setFilesInDir(list);
         }
@@ -87,7 +93,7 @@ public class FileAccessService {
     }
 
     public Path uploadFile(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(tempRootDirectory, file.getOriginalFilename());
+        Path uploadPath = Paths.get(rootDirectory, file.getOriginalFilename());
         file.transferTo(uploadPath);
 
         return uploadPath;
