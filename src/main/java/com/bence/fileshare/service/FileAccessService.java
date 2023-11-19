@@ -74,6 +74,21 @@ public class FileAccessService {
         return returnable;
     }
 
+    public OneFile getOneFileInfo(String filePath) throws AccessDeniedException{
+        File file = new File(filePath);
+
+        if(!file.canRead()){
+            log.error("Don't have permission to read the given folder: " + filePath);
+            throw new AccessDeniedException("Don't have permission to read the given folder: " + filePath);
+        }
+        else if(!file.canWrite()){
+            log.error("Don't have permission to write into the given folder: " + filePath);
+            throw new AccessDeniedException("Don't have permission to write into the given folder: " + filePath);
+        }
+
+        return new OneFile(file.isDirectory(), file.getName());
+    }
+
     public Resource downloadFile(String filePath) throws IOException {
         File file = new File(filePath);
 

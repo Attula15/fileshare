@@ -1,6 +1,7 @@
 package com.bence.fileshare.controller;
 
 import com.bence.fileshare.pojo.FolderInfo;
+import com.bence.fileshare.pojo.OneFile;
 import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.service.FileAccessService;
 import com.bence.fileshare.utils.ZipClass;
@@ -37,6 +38,16 @@ public class MainController {
     public ResponseEntity<FolderInfo> getFolderContents(@RequestParam("path") String path) {
         try{
             return ResponseEntity.ok(fileAccessService.getInfo(path));
+        }
+        catch (AccessDeniedException ex){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    @GetMapping("/getOneFileInfo")
+    public ResponseEntity<OneFile> getOneFileInfo(@RequestParam("path") String path){
+        try{
+            return ResponseEntity.ok(fileAccessService.getOneFileInfo(path));
         }
         catch (AccessDeniedException ex){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
