@@ -27,8 +27,6 @@ public class FileAccessService {
     @Value("${my_root_directory}")
     private String rootDirectory;
 
-    private final String tempRootDirectory = "C:\\testfolder\\testFolder2";
-
     public SimpleString getRootDirectory(){
         return new SimpleString(rootDirectory);
     }
