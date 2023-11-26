@@ -95,15 +95,19 @@ public class MainController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile multipartFile){
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile multipartFile,
+                                             @RequestParam("isFolder") Boolean isFolder,
+                                             @RequestParam("destFolder") String destFolder){
         try{
-            Path path = fileAccessService.uploadFile(multipartFile);
+            Path path = fileAccessService.uploadFile(multipartFile, isFolder.booleanValue(), destFolder);
+            if(path == null){
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("The file or folder already exists");
+            }
             return ResponseEntity.status(HttpStatus.OK).body("The upload was successful. The file has been uploaded to: " + path);
         }
         catch (IOException ex){
-            log.error("There was an erro while trying to transfer file to the server: " + ex.getMessage());
+            log.error("There was an error while trying to transfer file to the server: " + ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
     }
 }

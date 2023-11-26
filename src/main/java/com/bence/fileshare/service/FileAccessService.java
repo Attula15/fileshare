@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -18,8 +19,12 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 @Service
 @Slf4j
@@ -105,9 +110,28 @@ public class FileAccessService {
         }
     }
 
-    public Path uploadFile(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(rootDirectory, file.getOriginalFilename());
-        file.transferTo(uploadPath);
+    public Path uploadFile(MultipartFile file, boolean isFolder, String destinationFolder) throws IOException {
+        Path uploadPath = Paths.get(destinationFolder, file.getOriginalFilename());
+        File checkabelFile = new File(destinationFolder);
+
+        File[] filesInDir = checkabelFile.listFiles();
+        String fileName = file.getOriginalFilename();
+        if(isFolder){
+            fileName = file.getOriginalFilename().replaceFirst(".zip", "");
+        }
+        String finalFileName = fileName;
+        if(Arrays.stream(filesInDir).anyMatch(fileInDir -> fileInDir.getName().equals(finalFileName))){
+            return null;
+        }
+
+        if(isFolder){
+            String originalFolderName = file.getOriginalFilename().replaceFirst(".zip", "");
+            uploadPath = Paths.get(destinationFolder, originalFolderName);
+            ZipService.unzip(file, uploadPath.toString());
+        }
+        else{
+           file.transferTo(uploadPath);
+        }
 
         return uploadPath;
     }
