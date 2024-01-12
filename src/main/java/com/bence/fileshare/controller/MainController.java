@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
 import org.springframework.core.io.Resource;
@@ -109,5 +110,22 @@ public class MainController {
             log.error("There was an error while trying to transfer file to the server: " + ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/createFolder")
+    public ResponseEntity<String> createNewFolder(@RequestParam("destFolder") String destFolder,
+                                                  @RequestParam("newFolder") String newFolderName){
+        Map<String, String> resultOfFolderCreation;
+        try{
+            resultOfFolderCreation = fileAccessService.createFolder(destFolder, newFolderName);
+        }
+        catch (SecurityException secEx){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You do not have permission to create a folder there");
+        }
+
+        if(resultOfFolderCreation.containsKey("Failure")){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The folder already exists! Or could not be created!");
+        }
+        return ResponseEntity.ok("Folder created at: " + resultOfFolderCreation.get("Success"));
     }
 }

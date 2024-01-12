@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
@@ -22,9 +21,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 @Service
 @Slf4j
@@ -134,5 +130,14 @@ public class FileAccessService {
         }
 
         return uploadPath;
+    }
+
+    public Map<String, String> createFolder(String destinationFolder, String newFolderName){
+        File newFolder = new File(destinationFolder + "/" + newFolderName);
+        boolean resultOfNewFolderCreation = newFolder.mkdir();
+        if(resultOfNewFolderCreation){
+            return Map.of("Success", newFolder.toString());
+        }
+        return Map.of("Failure", "The folder could not be created.");
     }
 }
