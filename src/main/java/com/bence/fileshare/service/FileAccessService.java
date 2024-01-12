@@ -4,6 +4,8 @@ import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
 import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.utils.FileSizeConverter;
+import com.bence.fileshare.utils.ZipClass;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
@@ -32,18 +35,24 @@ public class FileAccessService {
         return new SimpleString(rootDirectory);
     }
 
+    private String setPath(String filePath){
+        if(filePath.isEmpty()){
+            filePath = rootDirectory;
+        }
+        else{
+            filePath = rootDirectory + "/" + filePath;
+        }
+
+        return filePath;
+    }
+
     public FolderInfo getInfo(String folderPath) throws AccessDeniedException {
         if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
             log.warn("The root directory has not been set.");
         }
         log.info(rootDirectory);
 
-        if(folderPath.isEmpty()){
-            folderPath = rootDirectory;
-        }
-        else{
-            folderPath = rootDirectory + "/" + folderPath;
-        }
+        folderPath = setPath(folderPath);
 
         File folder = new File(folderPath);
         FolderInfo returnable = new FolderInfo();
@@ -81,6 +90,7 @@ public class FileAccessService {
     }
 
     public OneFile getOneFileInfo(String filePath) throws AccessDeniedException{
+        filePath = setPath(filePath);
         File file = new File(filePath);
 
         if(!file.canRead()){
