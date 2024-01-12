@@ -173,6 +173,8 @@ public class FileAccessService {
     }
 
     public Map<String, String> delete(String filePath){
+        filePath = setPath(filePath);
+
         if(filePath.equals(rootDirectory)){
             return Map.of("Failure", "The filepath is the root path!");
         }
