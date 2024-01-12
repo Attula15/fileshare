@@ -38,6 +38,13 @@ public class FileAccessService {
         }
         log.info(rootDirectory);
 
+        if(folderPath.isEmpty()){
+            folderPath = rootDirectory;
+        }
+        else{
+            folderPath = rootDirectory + "/" + folderPath;
+        }
+
         File folder = new File(folderPath);
         FolderInfo returnable = new FolderInfo();
 

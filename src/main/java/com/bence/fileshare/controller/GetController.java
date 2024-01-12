@@ -31,7 +31,7 @@ public class GetController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<FolderInfo> getFolderContents(@RequestParam("path") String path) {
+    public ResponseEntity<FolderInfo> getFolderContents(@RequestParam(name = "path", defaultValue = "") String path) {
         try{
             return ResponseEntity.ok(fileAccessService.getInfo(path));
         }
