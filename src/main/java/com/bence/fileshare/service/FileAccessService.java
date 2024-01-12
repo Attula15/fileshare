@@ -14,13 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -139,5 +137,35 @@ public class FileAccessService {
             return Map.of("Success", newFolder.toString());
         }
         return Map.of("Failure", "The folder could not be created.");
+    }
+
+    private void deleteFilesRecursively(String folderPath){
+        File toBeDeletedFile = new File(folderPath);
+        if(toBeDeletedFile.isDirectory()){
+            File[] files = toBeDeletedFile.listFiles();
+            for (File file : files) {
+                deleteFilesRecursively(file.getPath());
+            }
+        }
+        log.warn("Deleting " + toBeDeletedFile.getName());
+        toBeDeletedFile.delete();
+    }
+
+    public Map<String, String> delete(String filePath){
+        if(filePath.equals(rootDirectory)){
+            return Map.of("Failure", "The filepath is the root path!");
+        }
+
+        File toBeDeletedFile = new File(filePath);
+
+        if(toBeDeletedFile.isDirectory() && toBeDeletedFile.listFiles().length > 0){
+            deleteFilesRecursively(toBeDeletedFile.getPath());
+        }
+
+        boolean success = toBeDeletedFile.delete();
+        if(success){
+            return Map.of("Success", "The file: "+ filePath +" has been deleted.");
+        }
+        return Map.of("Failure", "The file: " + filePath + " could not be deleted");
     }
 }
