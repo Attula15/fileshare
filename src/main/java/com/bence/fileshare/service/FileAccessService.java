@@ -2,10 +2,7 @@ package com.bence.fileshare.service;
 
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
-import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.utils.FileSizeConverter;
-import com.bence.fileshare.utils.ZipClass;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipOutputStream;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -33,8 +27,8 @@ public class FileAccessService {
     @Value("${my_root_directory}")
     private String rootDirectory;
 
-    public SimpleString getRootDirectory(){
-        return new SimpleString(rootDirectory);
+    public String getRootDirectory(){
+        return rootDirectory;
     }
 
     private String setPath(String filePath){
@@ -52,7 +46,6 @@ public class FileAccessService {
         if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
             log.warn("The root directory has not been set.");
         }
-        log.info(rootDirectory);
 
         folderPath = setPath(folderPath);
 
@@ -172,11 +165,11 @@ public class FileAccessService {
                 deleteFilesRecursively(file.getPath());
             }
         }
-        log.warn("Deleting " + toBeDeletedFile.getName());
+        log.warn("Deleting " + toBeDeletedFile.getPath());
         toBeDeletedFile.delete();
     }
 
-    public Map<String, String> delete(String filePath){
+    public Map<String, String> delete(String filePath) throws SecurityException{
         filePath = setPath(filePath);
 
         if(filePath.equals(rootDirectory)){

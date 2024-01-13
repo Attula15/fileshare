@@ -2,7 +2,6 @@ package com.bence.fileshare.controller;
 
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
-import com.bence.fileshare.pojo.SimpleString;
 import com.bence.fileshare.service.FileAccessService;
 import com.bence.fileshare.utils.ZipClass;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,7 +19,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.zip.ZipOutputStream;
 
-//Reafctor is whole class ASAP
+//Refactor this whole class ASAP
 @RestController
 @RequestMapping("api/get")
 @Slf4j
@@ -35,6 +34,7 @@ public class GetController {
         this.fileAccessService = fileAccessService;
     }
 
+    //Neither does this
     private String setPath(String filePath){
         if(filePath.isEmpty()){
             filePath = rootDirectory;
@@ -67,7 +67,7 @@ public class GetController {
     }
 
     @GetMapping("/basePath")
-    public ResponseEntity<SimpleString> getBasePath(){
+    public ResponseEntity<String> getBasePath(){
         return ResponseEntity.ok(fileAccessService.getRootDirectory());
     }
 
