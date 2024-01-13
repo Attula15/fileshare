@@ -162,6 +162,10 @@ public class FileAccessService {
 
     private void deleteFilesRecursively(String folderPath){
         File toBeDeletedFile = new File(folderPath);
+        if(!toBeDeletedFile.canWrite()){
+            log.error("Insufficient permission for the give file: " + toBeDeletedFile.getPath());
+            throw new SecurityException("Insufficient permission for the give file: " + toBeDeletedFile.getPath());
+        }
         if(toBeDeletedFile.isDirectory()){
             File[] files = toBeDeletedFile.listFiles();
             for (File file : files) {
