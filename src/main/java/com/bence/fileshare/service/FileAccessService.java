@@ -120,6 +120,7 @@ public class FileAccessService {
 
     public Path uploadFile(MultipartFile file, boolean isFolder, String destinationFolder) throws IOException {
         Path uploadPath = Paths.get(destinationFolder, file.getOriginalFilename());
+        uploadPath = Paths.get(setPath(uploadPath.toString()));
         File checkabelFile = new File(destinationFolder);
 
         File[] filesInDir = checkabelFile.listFiles();
@@ -128,7 +129,7 @@ public class FileAccessService {
             fileName = file.getOriginalFilename().replaceFirst(".zip", "");
         }
         String finalFileName = fileName;
-        if(Arrays.stream(filesInDir).anyMatch(fileInDir -> fileInDir.getName().equals(finalFileName))){
+        if(filesInDir != null && Arrays.stream(filesInDir).anyMatch(fileInDir -> fileInDir.getName().equals(finalFileName))){
             return null;
         }
 
