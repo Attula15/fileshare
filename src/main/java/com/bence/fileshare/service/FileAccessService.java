@@ -145,6 +145,7 @@ public class FileAccessService {
     }
 
     public Map<String, String> createFolder(String destinationFolder, String newFolderName){
+        destinationFolder = setPath(destinationFolder);
         File newFolder = new File(destinationFolder + "/" + newFolderName);
         boolean resultOfNewFolderCreation = newFolder.mkdir();
         if(resultOfNewFolderCreation){
