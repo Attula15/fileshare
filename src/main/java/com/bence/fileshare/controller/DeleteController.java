@@ -13,7 +13,7 @@ import java.util.Map;
 @Slf4j
 @CrossOrigin
 public class DeleteController {
-    private FileAccessService fileAccessService;
+    private final FileAccessService fileAccessService;
 
     public DeleteController(FileAccessService fileAccessService){
         this.fileAccessService = fileAccessService;
