@@ -3,6 +3,7 @@ package com.bence.fileshare.service;
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
 import com.bence.fileshare.utils.FileSizeConverter;
+import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
@@ -25,13 +26,64 @@ import java.util.Map;
 @Slf4j
 public class FileAccessService {
     @Value("${my_root_directory}")
-    private String rootDirectory;
+    private static String rootDirectory;
+    private String rootTxt = ".root.txt";
 
-    public String getRootDirectory(){
-        return rootDirectory;
+    private File getRootDirectory() throws Exception {
+        if(rootDirectory.isEmpty()){
+            log.info("Root directory is empty, initializing root directory to default");
+            String os = System.getProperty("os.name");
+
+            if(os.contains("Windows")){
+                log.error("The operating system is Windows, could not create default root directory");
+                throw new ExecutionControl.NotImplementedException("The application currently does not fully support " +
+                        "Windows based operating systems. " +
+                        "Please make sure to set the root directory to an existing directory!");
+            }
+
+            File defaultRootDirectory = new File("/opt/fileshare_rootDirectory");
+
+            if(defaultRootDirectory.exists()){
+                log.info("The default root directory (/opt/fileshare_rootDirectory) already exists!");
+                File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);
+                log.info("Checking if the default directory was made by the program before");
+                if(rootDirectoryTextFile.exists()){
+                    rootDirectory = defaultRootDirectory.getPath();
+                    return new File(rootDirectory);
+                }
+                log.error("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
+                throw new Exception("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
+            }
+
+            if(!defaultRootDirectory.mkdir()){
+                log.error("Could not create default folder!");
+                throw new Exception("Could not create default folder: /opt/fileshare_rootDirectory");
+            }
+
+            log.info("Setting permissions to the root folder");
+            defaultRootDirectory.setReadable(true);
+            defaultRootDirectory.setWritable(true);
+            defaultRootDirectory.setExecutable(true);
+            log.info("Permissions has been set");
+
+            rootDirectory = defaultRootDirectory.getPath();
+        }
+        else {
+            File rootDir = new File(rootDirectory);
+            if(!rootDir.exists()){
+                log.error("The given root directory does not exists!");
+                throw new Exception("The given root directory does not exists!");
+            }
+            else if (!(rootDir.canRead() && rootDir.canWrite())) {
+                log.error("Don't have enough permissions to the root directory!");
+                throw new Exception("Don't have enough permissions to the root directory!");
+            }
+        }
+
+        return new File(rootDirectory);
     }
 
-    private String setPath(String filePath){
+    private String addGivenPathToRootFoldersPath(String filePath){
         if(filePath.isEmpty()){
             filePath = rootDirectory;
         }
@@ -42,12 +94,14 @@ public class FileAccessService {
         return filePath;
     }
 
-    public FolderInfo getInfo(String folderPath) throws AccessDeniedException {
+    public FolderInfo getInfo(String folderPath) throws Exception {
+        getRootDirectory();
+
         if(rootDirectory.equals("none") || rootDirectory.isEmpty()){
             log.warn("The root directory has not been set.");
         }
 
-        folderPath = setPath(folderPath);
+        folderPath = addGivenPathToRootFoldersPath(folderPath);
 
         File folder = new File(folderPath);
         FolderInfo returnable = new FolderInfo();
@@ -73,8 +127,17 @@ public class FileAccessService {
         List<OneFile> list = new ArrayList<>();
 
         if(dirListing != null){
-            for(File file : dirListing){
-                list.add(new OneFile(file.isDirectory(), file.getName()));
+            if(!folder.getPath().equals(rootDirectory)){
+                for(File file : dirListing){
+                    list.add(new OneFile(file.isDirectory(), file.getName()));
+                }
+            }
+            else{
+                for(File file : dirListing){
+                    if(!file.getName().equals(rootTxt)){
+                        list.add(new OneFile(file.isDirectory(), file.getName()));
+                    }
+                }
             }
             returnable.setFilesInDir(list);
         }
@@ -84,8 +147,10 @@ public class FileAccessService {
         return returnable;
     }
 
-    public OneFile getOneFileInfo(String filePath) throws AccessDeniedException{
-        filePath = setPath(filePath);
+    public OneFile getOneFileInfo(String filePath) throws Exception {
+        getRootDirectory();
+
+        filePath = addGivenPathToRootFoldersPath(filePath);
         File file = new File(filePath);
 
         if(!file.canRead()){
@@ -120,7 +185,7 @@ public class FileAccessService {
 
     public Path uploadFile(MultipartFile file, boolean isFolder, String destinationFolder) throws IOException {
         Path uploadPath = Paths.get(destinationFolder, file.getOriginalFilename());
-        uploadPath = Paths.get(setPath(uploadPath.toString()));
+        uploadPath = Paths.get(addGivenPathToRootFoldersPath(uploadPath.toString()));
         File checkabelFile = new File(destinationFolder);
 
         File[] filesInDir = checkabelFile.listFiles();
@@ -146,7 +211,7 @@ public class FileAccessService {
     }
 
     public Map<String, String> createFolder(String destinationFolder, String newFolderName){
-        destinationFolder = setPath(destinationFolder);
+        destinationFolder = addGivenPathToRootFoldersPath(destinationFolder);
         File newFolder = new File(destinationFolder + "/" + newFolderName);
         boolean resultOfNewFolderCreation = newFolder.mkdir();
         if(resultOfNewFolderCreation){
@@ -172,7 +237,7 @@ public class FileAccessService {
     }
 
     public Map<String, String> delete(String filePath) throws SecurityException{
-        filePath = setPath(filePath);
+        filePath = addGivenPathToRootFoldersPath(filePath);
 
         if(filePath.equals(rootDirectory)){
             return Map.of("Failure", "The filepath is the root path!");

@@ -54,6 +54,9 @@ public class GetController {
         catch (AccessDeniedException ex){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        catch (Exception ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/oneFileInfo")
@@ -64,11 +67,9 @@ public class GetController {
         catch (AccessDeniedException ex){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-    }
-
-    @GetMapping("/basePath")
-    public ResponseEntity<String> getBasePath(){
-        return ResponseEntity.ok(fileAccessService.getRootDirectory());
+        catch (Exception ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     //This need to be refactored ASAP
