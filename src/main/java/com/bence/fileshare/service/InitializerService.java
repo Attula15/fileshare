@@ -106,6 +106,7 @@ public class InitializerService {
                     log.warn("The data directory already exists");
                 }
                 directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
+                directoryManagerService.setRootDirectory(defaultRootDirectory.getPath());
                 return;
             }
             log.error("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
@@ -161,10 +162,13 @@ public class InitializerService {
         }
 
         File trashDir = new File(directoryManagerService.getRootDirectory() + "/fileshare_trash");
+        log.info("Creating trash directory at: " + directoryManagerService.getRootDirectory() + "/fileshare_trash");
         if(!trashDir.mkdir()){
             log.error("The trash directory could not be created!");
             throw new Exception("The trash directory could not be created!");
         }
+
+        log.info("Trash folder has been created");
         directoryManagerService.setTrashDirectory(trashDir.getPath());
     }
 

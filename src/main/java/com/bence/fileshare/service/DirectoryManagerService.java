@@ -39,10 +39,16 @@ public class DirectoryManagerService {
     }
 
     public String getTrashDirectory() {
+        if(trashDirectory == null){
+            return "";
+        }
         return trashDirectory;
     }
 
     public String getDataDirectory() {
+        if(dataDirectory == null){
+            return "";
+        }
         return dataDirectory;
     }
 }
