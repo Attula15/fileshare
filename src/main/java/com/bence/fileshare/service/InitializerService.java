@@ -3,12 +3,9 @@ package com.bence.fileshare.service;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.reader.StreamReader;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Scanner;
 
 @Service
@@ -46,17 +43,17 @@ public class InitializerService {
     }
 
     private void initalizeDefaultDirectory() throws Exception{
-        File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);///TODO I don't think that this is going to work
+        File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);
 
-        //Make sure that the initialize process stops in case it is being run again.
+        //Make sure that the initialize process stops in case it has already been run.
         if(directoryManagerService.getDataDirectory().isEmpty() ||
                 directoryManagerService.getTrashDirectory().isEmpty() ||
-                directoryManagerService.getRootDirectory().isEmpty()){
-            if(rootDirectoryTextFile.exists()){
+                directoryManagerService.getRootDirectory().isEmpty()) {
+            if (rootDirectoryTextFile.exists()) {
                 Scanner scanner = new Scanner(rootDirectoryTextFile);
-                while(scanner.hasNextLine()){
+                while (scanner.hasNextLine()) {
                     String row = scanner.nextLine();
-                    if(row.contains("Everything is alright!")){
+                    if (row.contains("Everything is alright!")) {
                         scanner.close();
                         log.error("The directory structure is corrupted!");
                         throw new Exception("The directory structure seems to be corrupted, a complete reinstall is needed. " +
@@ -66,7 +63,6 @@ public class InitializerService {
                 scanner.close();
             }
         }
-
 
         log.info("Root directory is empty, initializing root directory to default");
         String os = System.getProperty("os.name");
@@ -78,6 +74,10 @@ public class InitializerService {
                     "Please make sure to set the root directory to an existing directory!");
         }
 
+        createDirectoryStructureOnLinux(rootDirectoryTextFile);
+    }
+
+    private void createDirectoryStructureOnLinux(File rootDirectoryTextFile) throws Exception{
         File defaultRootDirectory = new File("/opt/fileshare_rootDirectory");
 
         if(defaultRootDirectory.exists()){
