@@ -11,7 +11,7 @@ public class DirectoryManagerService {
     private String dataDirectory;
 
     public void setRootDirectory(String value){
-        if(!rootDirectory.isEmpty()){
+        if(!rootDirectory.equals("none")){
             return;
         }
         rootDirectory = value;

@@ -117,6 +117,7 @@ public class InitializerService {
             log.error("Could not create default folder!");
             throw new Exception("Could not create default folder: /opt/fileshare_rootDirectory");
         }
+        log.info("Successfully created root directory");
 
         log.info("Setting permissions to the root folder");
         if(!(defaultRootDirectory.setReadable(true)
@@ -126,6 +127,7 @@ public class InitializerService {
             throw new Exception("There was an error while setting the privileges. (/opt/fileshare_rootDirectory)");
         }
         log.info("Permissions has been set");
+        directoryManagerService.setRootDirectory(defaultRootDirectory.getPath());
 
         if(!rootDirectoryTextFile.createNewFile()){
             log.error("Could not create checker txt file!");
