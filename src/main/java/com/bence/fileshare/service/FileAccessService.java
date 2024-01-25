@@ -3,12 +3,9 @@ package com.bence.fileshare.service;
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
 import com.bence.fileshare.utils.FileSizeConverter;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -27,100 +24,12 @@ import java.util.Map;
 @Slf4j
 public class FileAccessService {
     private final DirectoryManagerService directoryManagerService;
+    private final InitializerService initializerService;
     private String rootTxt = ".root.txt";
 
-    public FileAccessService(DirectoryManagerService directoryManagerService) {
+    public FileAccessService(DirectoryManagerService directoryManagerService, InitializerService initializerService) {
         this.directoryManagerService = directoryManagerService;
-    }
-
-    ///TODO
-    private File getRootDirectory() throws Exception {
-        if(directoryManagerService.getRootDirectory().isEmpty()){
-            log.info("Root directory is empty, initializing root directory to default");
-            String os = System.getProperty("os.name");
-
-            if(os.contains("Windows")){
-                log.error("The operating system is Windows, could not create default root directory");
-                throw new ExecutionControl.NotImplementedException("The application currently does not fully support " +
-                        "Windows based operating systems. " +
-                        "Please make sure to set the root directory to an existing directory!");
-            }
-
-            File defaultRootDirectory = new File("/opt/fileshare_rootDirectory");
-            File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);///TODO I don't think that this is going to work
-
-            if(defaultRootDirectory.exists()){
-                log.info("The default root directory (/opt/fileshare_rootDirectory) already exists!");
-                log.info("Checking if the default directory was made by the program before");
-                if(rootDirectoryTextFile.exists()){
-                    File rootDirectoryData = new File("/opt/fileshare_rootDirectory/customer_data");
-                    if(!rootDirectoryData.exists()){
-                        boolean dataDirResult = rootDirectoryData.mkdir();
-                        if(!dataDirResult){
-                            log.error("Could not create data directory (/opt/fileshare_rootDirectory/customer_data)!");
-                            throw new Exception("Could not create data directory (/opt/fileshare_rootDirectory/customer_data)!");
-                        }
-                    }
-                    else{
-                        log.warn("The data directory already exists");
-                    }
-                    directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
-                    return new File(directoryManagerService.getRootDirectory());
-                }
-                log.error("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
-                throw new Exception("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
-            }
-
-            if(!defaultRootDirectory.mkdir()){
-                log.error("Could not create default folder!");
-                throw new Exception("Could not create default folder: /opt/fileshare_rootDirectory");
-            }
-
-            log.info("Setting permissions to the root folder");
-            if(!(defaultRootDirectory.setReadable(true)
-                    && defaultRootDirectory.setWritable(true)
-                    && defaultRootDirectory.setExecutable(true))){
-                log.error("There was an error while setting the privileges. (/opt/fileshare_rootDirectory)");
-                throw new Exception("There was an error while setting the privileges. (/opt/fileshare_rootDirectory)");
-            }
-            log.info("Permissions has been set");
-
-            if(!rootDirectoryTextFile.createNewFile()){
-                log.error("Could not create checker txt file!");
-                throw new Exception("Could not create checker txt file!");
-            }
-
-            log.info("Checker txt file has been created");
-            File rootDirectoryData = new File("/opt/fileshare_rootDirectory/customer_data");
-            rootDirectoryData.mkdir();
-
-            directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
-        }
-        else {
-            File rootDir = new File(directoryManagerService.getRootDirectory());
-            if(!rootDir.exists()){
-                log.error("The given root directory does not exists!");
-                throw new Exception("The given root directory does not exists!");
-            }
-            else if (!(rootDir.canRead() && rootDir.canWrite())) {
-                log.error("Don't have enough permissions to the root directory!");
-                throw new Exception("Don't have enough permissions to the root directory!");
-            }
-            else{
-                File rootDirectoryData = new File(directoryManagerService.getRootDirectory() + "/customer_data");
-                rootDirectoryData.mkdir();
-                directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
-            }
-        }
-        createTrashFolder();
-
-        log.info("Main directory structure has been created successfully.");
-
-        return new File(directoryManagerService.getRootDirectory());
-    }
-
-    private void createTrashFolder(){
-        ///TODO
+        this.initializerService = initializerService;
     }
 
     private String addGivenPathToRootFoldersPath(String filePath){
@@ -135,7 +44,7 @@ public class FileAccessService {
     }
 
     public FolderInfo getInfo(String folderPath) throws Exception {
-        getRootDirectory();
+        initializerService.getRootDirectory();
 
         folderPath = addGivenPathToRootFoldersPath(folderPath);
 
@@ -184,7 +93,7 @@ public class FileAccessService {
     }
 
     public OneFile getOneFileInfo(String filePath) throws Exception {
-        getRootDirectory();
+        initializerService.getRootDirectory();
 
         filePath = addGivenPathToRootFoldersPath(filePath);
         File file = new File(filePath);

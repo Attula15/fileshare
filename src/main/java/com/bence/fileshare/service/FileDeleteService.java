@@ -2,7 +2,6 @@ package com.bence.fileshare.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
@@ -12,24 +11,11 @@ import java.io.IOException;
 @Service
 @Slf4j
 public class FileDeleteService {
-    private static String trashDirectoryPath;
-    @Value("${my_root_directory}")
-    private String rootDirectoryPath;
 
-    private File getTrashDirectory() throws Exception {
-        if(trashDirectoryPath != null && !trashDirectoryPath.isEmpty()){
-            return new File(trashDirectoryPath);
-        }
+    private final DirectoryManagerService directoryManagerService;
 
-        File rootDirectoryFile = new File(rootDirectoryPath);
-        File parentOfRoot = rootDirectoryFile.getParentFile();
-        File trashDirectoryFile = new File(parentOfRoot.getPath() + "/" + "fileshare_trash");
-        if(trashDirectoryFile.mkdir()){
-            trashDirectoryPath = trashDirectoryFile.getPath();
-            return new File(trashDirectoryPath);
-        }
-
-        throw new Exception("Could not create trash directory at: " + trashDirectoryFile.getPath());
+    public FileDeleteService(DirectoryManagerService directoryManagerService) {
+        this.directoryManagerService = directoryManagerService;
     }
 
     private boolean copyWithSizeCheck(File toBeCopiedFile, File destinationFile) throws IOException {
@@ -58,7 +44,7 @@ public class FileDeleteService {
     }
 
     public boolean deleteFile(String filePath) throws Exception {
-        File trashDirectory = getTrashDirectory();
+        File trashDirectory = new File(directoryManagerService.getTrashDirectory());
 
         File toBeDeletedFile = new File(filePath);
         if(!(toBeDeletedFile.canWrite() && toBeDeletedFile.canRead())){
