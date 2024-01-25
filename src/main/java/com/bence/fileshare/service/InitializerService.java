@@ -77,7 +77,7 @@ public class InitializerService {
         createDirectoryStructureOnLinux(rootDirectoryTextFile);
     }
 
-    private void createDirectoryStructureOnLinux(File rootDirectoryTextFile) throws Exception{
+    private void createDirectoryStructureOnLinux(File rootDirectoryTextFile) throws Exception {
         File defaultRootDirectory = new File("/opt/fileshare_rootDirectory");
 
         if(defaultRootDirectory.exists()){
