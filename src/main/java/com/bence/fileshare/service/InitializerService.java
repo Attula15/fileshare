@@ -1,5 +1,7 @@
 package com.bence.fileshare.service;
 
+import com.bence.fileshare.repository.DeletedFilesRepository;
+import com.bence.fileshare.repository.UsersRepository;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,16 +16,24 @@ public class InitializerService {
     private DirectoryManagerService directoryManagerService;
     private String rootTxt = ".root.txt";
 
-    public InitializerService(DirectoryManagerService directoryManagerService) {
+    private UsersRepository usersRepository;
+    private DeletedFilesRepository deletedFilesRepository;
+
+
+    public InitializerService(DirectoryManagerService directoryManagerService, UsersRepository usersRepository, DeletedFilesRepository deletedFilesRepository) {
         this.directoryManagerService = directoryManagerService;
+        this.usersRepository = usersRepository;
+        this.deletedFilesRepository = deletedFilesRepository;
     }
 
     ///TODO
     public File getRootDirectory() throws Exception {
         if(directoryManagerService.getRootDirectory().isEmpty()){
+            log.info("There was no directory given");
             initalizeDefaultDirectory();
         }
         else {
+            log.info("There was a directory given");
             initializeGivenDirectory();
         }
 
@@ -82,7 +92,7 @@ public class InitializerService {
 
         if(defaultRootDirectory.exists()){
             log.info("The default root directory (/opt/fileshare_rootDirectory) already exists!");
-            log.info("Checking if the default directory was made by the program before");
+            log.info("Checking if the default directory was made by this program before");
             if(rootDirectoryTextFile.exists()){
                 File rootDirectoryData = new File("/opt/fileshare_rootDirectory/customer_data");
                 if(!rootDirectoryData.exists()){
@@ -159,6 +169,7 @@ public class InitializerService {
     }
 
     private void createDatabase() throws Exception{
-
+        usersRepository.findAll();
+        deletedFilesRepository.findAll();
     }
 }

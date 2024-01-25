@@ -2,11 +2,11 @@ package com.bence.fileshare.controller;
 
 import com.bence.fileshare.pojo.FolderInfo;
 import com.bence.fileshare.pojo.OneFile;
+import com.bence.fileshare.service.DirectoryManagerService;
 import com.bence.fileshare.service.FileAccessService;
 import com.bence.fileshare.utils.ZipClass;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,21 +26,22 @@ import java.util.zip.ZipOutputStream;
 @CrossOrigin
 public class GetController {
     //This does NOT belong here
-    @Value("${my_root_directory}")
-    private String rootDirectory;
+
+    private DirectoryManagerService directoryManagerService;
     private FileAccessService fileAccessService;
 
-    public GetController(FileAccessService fileAccessService){
+    public GetController(DirectoryManagerService directoryManagerService, FileAccessService fileAccessService){
+        this.directoryManagerService = directoryManagerService;
         this.fileAccessService = fileAccessService;
     }
 
     //Neither does this
     private String setPath(String filePath){
         if(filePath.isEmpty()){
-            filePath = rootDirectory;
+            filePath = directoryManagerService.getDataDirectory();
         }
         else{
-            filePath = rootDirectory + "/" + filePath;
+            filePath = directoryManagerService.getDataDirectory() + "/" + filePath;
         }
 
         return filePath;

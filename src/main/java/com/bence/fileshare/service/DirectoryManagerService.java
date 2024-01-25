@@ -32,6 +32,9 @@ public class DirectoryManagerService {
     }
 
     public String getRootDirectory() {
+        if(rootDirectory.equals("none")){
+            return "";
+        }
         return rootDirectory;
     }
 
