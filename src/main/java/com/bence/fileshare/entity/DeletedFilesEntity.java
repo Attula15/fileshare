@@ -6,10 +6,9 @@ import org.springframework.context.annotation.DependsOn;
 
 import java.time.LocalDateTime;
 
-@Entity()
+@Entity
 @Table(name="deleted_files")
 @Data
-@DependsOn("UsersEntity")
 public class DeletedFilesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,9 +17,8 @@ public class DeletedFilesEntity {
     @Column(name = "delete_date")
     LocalDateTime deleteDate;
 
-    @OneToOne(targetEntity = UsersEntity.class)
-    @JoinColumn(name = "id")
-    UsersEntity user;
+    @Column(name = "user_id")
+    Long userId;
 
     @Column(name = "file_name")
     String fileName;
@@ -30,10 +28,11 @@ public class DeletedFilesEntity {
 
     public DeletedFilesEntity() {
     }
-    public DeletedFilesEntity(Long id, LocalDateTime deleteDate, UsersEntity user, String fileName, String originalFilePath){
+
+    public DeletedFilesEntity(Long id, LocalDateTime deleteDate, Long userId, String fileName, String originalFilePath) {
         this.id = id;
         this.deleteDate = deleteDate;
-        this.user = user;
+        this.userId = userId;
         this.fileName = fileName;
         this.originalFilePath = originalFilePath;
     }

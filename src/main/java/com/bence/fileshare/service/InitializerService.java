@@ -51,8 +51,6 @@ public class InitializerService {
             return new File(directoryManagerService.getRootDirectory());
         }
 
-        log.info("Checker file filled with information successfully");
-
         return new File(directoryManagerService.getRootDirectory());
     }
 
