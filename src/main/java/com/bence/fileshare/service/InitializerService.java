@@ -63,40 +63,6 @@ public class InitializerService {
                     throw new Exception("The root directory does not exists!");
                 }
                 directoryManagerService.setRootDirectory("/opt/fileshare_rootDirectory");
-                File dataDirectory = new File(directoryManagerService.getRootDirectory() + "/customer_data");
-                if(!dataDirectory.exists()){
-                    log.error("The data directory does not exists!");
-                    throw new Exception("The data directory does not exists!");
-                }
-                directoryManagerService.setDataDirectory(dataDirectory.getPath());
-
-                File trashDirectory = new File(directoryManagerService.getRootDirectory() + "/fileshare_trash");
-                if(!trashDirectory.exists()){
-                    log.error("The trash directory does not exists!");
-                    throw new Exception("The trash directory does not exists!");
-                }
-                directoryManagerService.setTrashDirectory(trashDirectory.getPath());
-
-                File rootDirectoryTextFile = new File(directoryManagerService.getRootDirectory() + "/" + rootTxt);
-                if (rootDirectoryTextFile.exists()) {
-                    Scanner scanner = new Scanner(rootDirectoryTextFile);
-                    while (scanner.hasNextLine()) {
-                        String row = scanner.nextLine();
-                        if (!row.contains("Everything is alright!")) {
-                            scanner.close();
-                            log.error("The directory structure is corrupted!");
-                            throw new Exception("The directory structure seems to be corrupted, a complete reinstall is needed. " +
-                                    "See the documentation for further information");
-                        }
-                    }
-                    scanner.close();
-                }
-                else{
-                    log.error("Root directory checker text file does not exists!");
-                    throw new Exception("Root directory checker text file does not exists!");
-                }
-
-                return true;
             }
             //Root directory was given
             else{
@@ -107,9 +73,44 @@ public class InitializerService {
                 }
             }
 
-            return false;
+            File dataDirectory = new File(directoryManagerService.getRootDirectory() + "/customer_data");
+            if(!dataDirectory.exists()){
+                log.error("The data directory does not exists!");
+                throw new Exception("The data directory does not exists!");
+            }
+            directoryManagerService.setDataDirectory(dataDirectory.getPath());
+
+            File trashDirectory = new File(directoryManagerService.getRootDirectory() + "/fileshare_trash");
+            if(!trashDirectory.exists()){
+                log.error("The trash directory does not exists!");
+                throw new Exception("The trash directory does not exists!");
+            }
+            directoryManagerService.setDataDirectory(trashDirectory.getPath());
+
+            checkTxt();
         }
         return true;
+    }
+
+    private void checkTxt() throws Exception {
+        File rootDirectoryTextFile = new File(directoryManagerService.getRootDirectory() + "/" + rootTxt);
+        if (rootDirectoryTextFile.exists()) {
+            Scanner scanner = new Scanner(rootDirectoryTextFile);
+            while (scanner.hasNextLine()) {
+                String row = scanner.nextLine();
+                if (!row.contains("Everything is alright!")) {
+                    scanner.close();
+                    log.error("The directory structure is corrupted!");
+                    throw new Exception("The directory structure seems to be corrupted, a complete reinstall is needed. " +
+                            "See the documentation for further information");
+                }
+            }
+            scanner.close();
+        }
+        else{
+            log.error("Root directory checker text file does not exists!");
+            throw new Exception("Root directory checker text file does not exists!");
+        }
     }
 
     private void initalizeDefaultDirectory() throws Exception{
