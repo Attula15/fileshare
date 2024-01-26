@@ -25,8 +25,6 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 @CrossOrigin
 public class GetController {
-    //This does NOT belong here
-
     private DirectoryManagerService directoryManagerService;
     private FileAccessService fileAccessService;
 

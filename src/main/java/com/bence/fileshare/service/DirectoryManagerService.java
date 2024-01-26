@@ -18,14 +18,14 @@ public class DirectoryManagerService {
     }
 
     public void setTrashDirectory(String trashDirectory) {
-        if(!trashDirectory.isEmpty()){
+        if(!this.trashDirectory.isEmpty()){
             return;
         }
         this.trashDirectory = trashDirectory;
     }
 
     public void setDataDirectory(String dataDirectory) {
-        if(!dataDirectory.isEmpty()){
+        if(!this.dataDirectory.isEmpty()){
             return;
         }
         this.dataDirectory = dataDirectory;
@@ -39,16 +39,10 @@ public class DirectoryManagerService {
     }
 
     public String getTrashDirectory() {
-        if(trashDirectory == null){
-            return "";
-        }
         return trashDirectory;
     }
 
     public String getDataDirectory() {
-        if(dataDirectory == null){
-            return "";
-        }
         return dataDirectory;
     }
 }
