@@ -25,7 +25,6 @@ import java.util.Map;
 public class FileAccessService {
     private final DirectoryManagerService directoryManagerService;
     private final InitializerService initializerService;
-    private String rootTxt = ".root.txt";
 
     public FileAccessService(DirectoryManagerService directoryManagerService, InitializerService initializerService) {
         this.directoryManagerService = directoryManagerService;
@@ -72,17 +71,8 @@ public class FileAccessService {
         List<OneFile> list = new ArrayList<>();
 
         if(dirListing != null){
-            if(!folder.getPath().equals(directoryManagerService.getDataDirectory())){
-                for(File file : dirListing){
-                    list.add(new OneFile(file.isDirectory(), file.getName()));
-                }
-            }
-            else{
-                for(File file : dirListing){
-                    if(!file.getName().equals(rootTxt)){
-                        list.add(new OneFile(file.isDirectory(), file.getName()));
-                    }
-                }
+            for(File file : dirListing){
+                list.add(new OneFile(file.isDirectory(), file.getName()));
             }
             returnable.setFilesInDir(list);
         }

@@ -4,16 +4,18 @@ import com.bence.fileshare.repository.DeletedFilesRepository;
 import com.bence.fileshare.repository.UsersRepository;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.util.Scanner;
 
 @Service
 @Slf4j
 public class InitializerService {
+    @Value("${init}")
+    private String initValue;
+    private boolean shouldInit;
     private DirectoryManagerService directoryManagerService;
-    private String rootTxt = ".root.txt";
     private UsersRepository usersRepository;
     private DeletedFilesRepository deletedFilesRepository;
 
@@ -26,106 +28,36 @@ public class InitializerService {
 
     ///TODO
     public File getRootDirectory() throws Exception {
-        if(directoryManagerService.getRootDirectory().isEmpty()){
-            log.info("There was no directory given");
-            initalizeDefaultDirectory();
+        shouldInit = (initValue.equals("true") || initValue.equals("True") || initValue.equals("TRUE"));
+        if(shouldInit){
+            if(directoryManagerService.getRootDirectory().isEmpty()){
+                log.info("There was no directory given");
+                initalizeDefaultDirectory();
+            }
+            else {
+                log.info("There was a directory given");
+                initializeGivenDirectory();
+            }
+            createDatabase();
+            log.info("Main directory structure has been created successfully.");
         }
-        else {
-            log.info("There was a directory given");
-            initializeGivenDirectory();
+        //When it already has been created before
+        else{
+            if(directoryManagerService.getRootDirectory().isEmpty()){
+                directoryManagerService.setRootDirectory("/opt/fileshare_rootDirectory");
+            }
+            directoryManagerService.setDataDirectory(directoryManagerService.getRootDirectory() + "/customer_data");
+            directoryManagerService.setTrashDirectory(directoryManagerService.getRootDirectory() + "/fileshare_trash");
+            return new File(directoryManagerService.getRootDirectory());
         }
-
-        createDatabase();
-
-        log.info("Main directory structure has been created successfully.");
-
-        File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);
-
-        createRootDirectoryTextFile(rootDirectoryTextFile);
 
         log.info("Checker file filled with information successfully");
 
         return new File(directoryManagerService.getRootDirectory());
     }
 
-    ///TODO
-    //Make sure that the initialize process stops in case it has already been run.
-    private boolean checkIfFileStructureAlreadyExists() throws Exception {
-        if(directoryManagerService.getDataDirectory().isEmpty() ||
-                directoryManagerService.getTrashDirectory().isEmpty() ||
-                directoryManagerService.getRootDirectory().isEmpty()) {
-
-            //Default path
-            if(directoryManagerService.getRootDirectory().isEmpty()){
-                File rootDirectory = new File("/opt/fileshare_rootDirectory");
-                if(!rootDirectory.exists()){
-                    log.error("The root directory does not exists!");
-                    throw new Exception("The root directory does not exists!");
-                }
-                directoryManagerService.setRootDirectory("/opt/fileshare_rootDirectory");
-            }
-            //Root directory was given
-            else{
-                File rootDirectory = new File(directoryManagerService.getRootDirectory());
-                if(!rootDirectory.exists()){
-                    log.error("The root directory does not exists!");
-                    throw new Exception("The root directory does not exists!");
-                }
-            }
-
-            File dataDirectory = new File(directoryManagerService.getRootDirectory() + "/customer_data");
-            if(!dataDirectory.exists()){
-                log.error("The data directory does not exists!");
-                throw new Exception("The data directory does not exists!");
-            }
-            directoryManagerService.setDataDirectory(dataDirectory.getPath());
-
-            File trashDirectory = new File(directoryManagerService.getRootDirectory() + "/fileshare_trash");
-            if(!trashDirectory.exists()){
-                log.error("The trash directory does not exists!");
-                throw new Exception("The trash directory does not exists!");
-            }
-            directoryManagerService.setDataDirectory(trashDirectory.getPath());
-
-            checkTxt();
-        }
-        return true;
-    }
-
-    private void checkTxt() throws Exception {
-        File rootDirectoryTextFile = new File(directoryManagerService.getRootDirectory() + "/" + rootTxt);
-        if (rootDirectoryTextFile.exists()) {
-            Scanner scanner = new Scanner(rootDirectoryTextFile);
-            while (scanner.hasNextLine()) {
-                String row = scanner.nextLine();
-                if (!row.contains("Everything is alright!")) {
-                    scanner.close();
-                    log.error("The directory structure is corrupted!");
-                    throw new Exception("The directory structure seems to be corrupted, a complete reinstall is needed. " +
-                            "See the documentation for further information");
-                }
-            }
-            scanner.close();
-        }
-        else{
-            log.error("Root directory checker text file does not exists!");
-            throw new Exception("Root directory checker text file does not exists!");
-        }
-    }
-
     private void initalizeDefaultDirectory() throws Exception{
-        File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);
-
-        try{
-            checkIfFileStructureAlreadyExists();
-        }
-        catch (Exception ex){
-            log.error("Directory structure is corrupted!");
-            System.exit(404);
-            return;
-        }
-
-        log.info("Root directory is empty, initializing root directory to default");
+        log.info("Initializing root directory to default");
         String os = System.getProperty("os.name");
 
         if(os.contains("Windows")){
@@ -135,33 +67,31 @@ public class InitializerService {
                     "Please make sure to set the root directory to an existing directory!");
         }
 
-        createDirectoryStructureOnLinux(rootDirectoryTextFile);
+        createDirectoryStructureOnLinux();
     }
 
-    private void createDirectoryStructureOnLinux(File rootDirectoryTextFile) throws Exception {
+    private void deleteFilesRecursively(String folderPath){
+        File toBeDeletedFile = new File(folderPath);
+        if(!toBeDeletedFile.canWrite()){
+            log.error("Insufficient permission for the give file: " + toBeDeletedFile.getPath());
+            throw new SecurityException("Insufficient permission for the give file: " + toBeDeletedFile.getPath());
+        }
+        if(toBeDeletedFile.isDirectory()){
+            File[] files = toBeDeletedFile.listFiles();
+            for (File file : files) {
+                deleteFilesRecursively(file.getPath());
+            }
+        }
+        log.warn("Deleting " + toBeDeletedFile.getPath());
+        toBeDeletedFile.delete();
+    }
+
+    private void createDirectoryStructureOnLinux() throws Exception {
         File defaultRootDirectory = new File("/opt/fileshare_rootDirectory");
 
+        //Delete the original directory
         if(defaultRootDirectory.exists()){
-            log.info("The default root directory (/opt/fileshare_rootDirectory) already exists!");
-            log.info("Checking if the default directory was made by this program before");
-            if(rootDirectoryTextFile.exists()){
-                File rootDirectoryData = new File("/opt/fileshare_rootDirectory/customer_data");
-                if(!rootDirectoryData.exists()){
-                    boolean dataDirResult = rootDirectoryData.mkdir();
-                    if(!dataDirResult){
-                        log.error("Could not create data directory (/opt/fileshare_rootDirectory/customer_data)!");
-                        throw new Exception("Could not create data directory (/opt/fileshare_rootDirectory/customer_data)!");
-                    }
-                }
-                else{
-                    log.warn("The data directory already exists");
-                }
-                directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
-                directoryManagerService.setRootDirectory(defaultRootDirectory.getPath());
-                return;
-            }
-            log.error("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
-            throw new Exception("The default root directory (/opt/fileshare_rootDirectory) already exists and was not made by this program!");
+            deleteFilesRecursively(defaultRootDirectory.getPath());
         }
 
         if(!defaultRootDirectory.mkdir()){
@@ -180,33 +110,12 @@ public class InitializerService {
         log.info("Permissions has been set");
         directoryManagerService.setRootDirectory(defaultRootDirectory.getPath());
 
-        if(!rootDirectoryTextFile.createNewFile()){
-            log.error("Could not create checker txt file!");
-            throw new Exception("Could not create checker txt file!");
-        }
-
-        log.info("Checker txt file has been created");
-        File rootDirectoryData = new File("/opt/fileshare_rootDirectory/customer_data");
-        rootDirectoryData.mkdir();
-
-        log.info("Created data folder at: /opt/fileshare_rootDirectory/customer_data");
-
-        directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
+        createDataFolder();
         createTrashFolder();
     }
 
     private void initializeGivenDirectory() throws Exception{
-        try{
-            checkIfFileStructureAlreadyExists();
-        }
-        catch (Exception ex){
-            log.error("Directory structure is corrupted!");
-            System.exit(404);
-            return;
-        }
-
         File rootDir = new File(directoryManagerService.getRootDirectory());
-        File rootDirectoryTextFile = new File(directoryManagerService.getRootDirectory() + "/" + rootTxt);
 
         if(!rootDir.exists()){
             log.error("The given root directory does not exists!");
@@ -217,42 +126,32 @@ public class InitializerService {
             throw new Exception("Don't have enough permissions to the root directory!");
         }
         else{
-            File rootDirectoryData = new File(directoryManagerService.getRootDirectory() + "/customer_data");
-            rootDirectoryData.mkdir();
-            directoryManagerService.setDataDirectory(rootDirectoryData.getPath());
+            createDataFolder();
             createTrashFolder();
-
-            createRootDirectoryTextFile(rootDirectoryTextFile);
         }
     }
 
-    private boolean createRootDirectoryTextFile(File rootDirectoryTextFile) throws IOException {
-        if(!rootDirectoryTextFile.createNewFile()){
-            return false;
-        }
-        FileWriter fileWriter = new FileWriter(rootDirectoryTextFile);
-        fileWriter.write("Everything is alright!");
-        fileWriter.close();
-        return true;
+    private void createDataFolder(){
+        File rootDataDirectory = new File(directoryManagerService.getRootDirectory() + "/customer_data");
+
+        log.info("Creating data directory at: " + rootDataDirectory.getPath());
+        rootDataDirectory.mkdir();
+
+        log.info("Data directory has been created");
+        directoryManagerService.setDataDirectory(rootDataDirectory.getPath());
     }
 
-    private void createTrashFolder() throws Exception{
-        if(!directoryManagerService.getTrashDirectory().isEmpty()){
-            return;
-        }
-
+    private void createTrashFolder(){
         File trashDir = new File(directoryManagerService.getRootDirectory() + "/fileshare_trash");
-        log.info("Creating trash directory at: " + directoryManagerService.getRootDirectory() + "/fileshare_trash");
-        if(!trashDir.mkdir()){
-            log.error("The trash directory could not be created!");
-            throw new Exception("The trash directory could not be created!");
-        }
 
-        log.info("Trash folder has been created");
+        log.info("Creating trash directory at: " + trashDir.getPath());
+        trashDir.mkdir();
+
+        log.info("Trash directory has been created");
         directoryManagerService.setTrashDirectory(trashDir.getPath());
     }
 
-    private void createDatabase() throws Exception{
+    private void createDatabase(){
         usersRepository.findAll();
         deletedFilesRepository.findAll();
     }
