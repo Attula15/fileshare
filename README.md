@@ -14,6 +14,7 @@ So this is basically a "file sharing" backend software.
 mvn package -DskipTests
 ```
 This command makes a .jar package out of the files.
+
 2. Initialize the program:
 Useable tags: 
 - --init -> if set to true, then the program will initialize its self when any GET access point is being called. **CAUTION THIS IS A DESTRUCTIVE PROCESS**
