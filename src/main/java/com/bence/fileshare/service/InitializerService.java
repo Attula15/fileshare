@@ -116,7 +116,10 @@ public class InitializerService {
     private void initalizeDefaultDirectory() throws Exception{
         File rootDirectoryTextFile = new File("/opt/fileshare_rootDirectory/" + rootTxt);
 
-        if(!checkIfFileStructureAlreadyExists()){
+        try{
+            checkIfFileStructureAlreadyExists();
+        }
+        catch (Exception ex){
             log.error("Directory structure is corrupted!");
             System.exit(404);
             return;
@@ -193,6 +196,15 @@ public class InitializerService {
     }
 
     private void initializeGivenDirectory() throws Exception{
+        try{
+            checkIfFileStructureAlreadyExists();
+        }
+        catch (Exception ex){
+            log.error("Directory structure is corrupted!");
+            System.exit(404);
+            return;
+        }
+
         File rootDir = new File(directoryManagerService.getRootDirectory());
         File rootDirectoryTextFile = new File(directoryManagerService.getRootDirectory() + "/" + rootTxt);
 
