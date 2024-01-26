@@ -3,7 +3,7 @@ package com.bence.fileshare.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Entity
+@Entity(name = "UsersEntity")
 @Table(name = "users")
 @Data
 public class UsersEntity {

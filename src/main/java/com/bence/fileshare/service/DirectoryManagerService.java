@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 public class DirectoryManagerService {
     @Value("${my_root_directory}")
     private String rootDirectory;
-    private String trashDirectory;
-    private String dataDirectory;
+    private String trashDirectory = "";
+    private String dataDirectory = "";
 
     public void setRootDirectory(String value){
         if(!rootDirectory.equals("none")){

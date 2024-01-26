@@ -2,12 +2,14 @@ package com.bence.fileshare.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.context.annotation.DependsOn;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity()
 @Table(name="deleted_files")
 @Data
+@DependsOn("UsersEntity")
 public class DeletedFilesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
