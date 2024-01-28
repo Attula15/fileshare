@@ -5,12 +5,14 @@ import com.bence.fileshare.repository.UsersRepository;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 
 @Service
 @Slf4j
+@Order(1)
 public class InitializerService {
     @Value("${init}")
     private String initValue;
