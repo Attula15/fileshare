@@ -1,0 +1,3 @@
+create table public.deleted_files (delete_date timestamp(6), id bigserial not null, user_id bigint unique, file_name varchar(255), original_file_path varchar(255), primary key (id));
+create table public.fileshare_users (id bigserial not null, name varchar(255) not null, primary key (id));
+alter table if exists public.deleted_files add constraint FK7615tnfedcamo53mkd8m2bqo foreign key (user_id) references public.fileshare_users;
