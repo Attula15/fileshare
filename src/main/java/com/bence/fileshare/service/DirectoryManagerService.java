@@ -1,10 +1,13 @@
 package com.bence.fileshare.service;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DirectoryManagerService {
+
+    @Getter
     @Value("${my_root_directory}")
     private String rootDirectory;
     private String trashDirectory = "";
@@ -31,18 +34,17 @@ public class DirectoryManagerService {
         this.dataDirectory = dataDirectory;
     }
 
-    public String getRootDirectory() {
-        if(rootDirectory.equals("none")){
-            return "";
-        }
-        return rootDirectory;
-    }
-
     public String getTrashDirectory() {
+        if(trashDirectory.isEmpty()){
+            trashDirectory = rootDirectory + "/fileshare_trash";
+        }
         return trashDirectory;
     }
 
     public String getDataDirectory() {
+        if(dataDirectory.isEmpty()){
+            dataDirectory = rootDirectory + "/customer_data";
+        }
         return dataDirectory;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 
+///TODO: The Initializer service should only use the DirectoryManagers get methods
 @Service
 @Slf4j
 @Order(1)
@@ -32,15 +33,16 @@ public class InitializerService {
     public File getRootDirectory() throws Exception {
         shouldInit = (initValue.equals("true") || initValue.equals("True") || initValue.equals("TRUE"));
         if(shouldInit){
-            if(directoryManagerService.getRootDirectory().isEmpty()){
+            //value remained on the default value
+            if(directoryManagerService.getRootDirectory().equals("/opt/fileshare_rootDirectory")){
                 log.info("There was no directory given");
                 initalizeDefaultDirectory();
             }
             else {
-                log.info("There was a directory given");
+                log.info("There was a directory given: " + directoryManagerService.getRootDirectory());
                 initializeGivenDirectory();
             }
-            createDatabase();
+            checkDatabase();
             log.info("Main directory structure has been created successfully.");
         }
         //When it already has been created before
@@ -151,7 +153,7 @@ public class InitializerService {
         directoryManagerService.setTrashDirectory(trashDir.getPath());
     }
 
-    private void createDatabase(){
+    private void checkDatabase(){
         usersRepository.findAll();
         deletedFilesRepository.findAll();
     }
