@@ -43,7 +43,7 @@ public class FileAccessService {
     }
 
     public FolderInfo getInfo(String folderPath) throws Exception {
-        initializerService.getRootDirectory();
+        //initializerService.getRootDirectory();
 
         folderPath = addGivenPathToRootFoldersPath(folderPath);
 
@@ -83,7 +83,7 @@ public class FileAccessService {
     }
 
     public OneFile getOneFileInfo(String filePath) throws Exception {
-        initializerService.getRootDirectory();
+        //initializerService.getRootDirectory();
 
         filePath = addGivenPathToRootFoldersPath(filePath);
         File file = new File(filePath);
