@@ -172,6 +172,7 @@ public class FileAccessService {
     }
 
     public Map<String, String> delete(String filePath) throws SecurityException{
+        log.info("Deleting: " + filePath);
         filePath = addGivenPathToRootFoldersPath(filePath);
 
         if(filePath.equals(directoryManagerService.getDataDirectory())){
@@ -185,8 +186,10 @@ public class FileAccessService {
         }
 
         File toBeDeletedFile = new File(filePath);
+        log.info("File/folder located at: " + toBeDeletedFile.getPath());
 
         if(toBeDeletedFile.isDirectory() && toBeDeletedFile.listFiles().length > 0){
+            log.info("Folders contents is being deleted now");
             deleteFilesRecursively(toBeDeletedFile.getPath());
         }
 
@@ -194,6 +197,7 @@ public class FileAccessService {
         if(success){
             return Map.of("Success", "The file: "+ filePath +" has been deleted.");
         }
+        log.error("Folders contents is being deleted now");
         return Map.of("Failure", "The file: " + filePath + " could not be deleted");
     }
 }
