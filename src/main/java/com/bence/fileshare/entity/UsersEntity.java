@@ -17,8 +17,7 @@ public class UsersEntity {
     public UsersEntity() {
     }
 
-    public UsersEntity(Long id, String name) {
-        this.id = id;
+    public UsersEntity(String name) {
         this.name = name;
     }
 }

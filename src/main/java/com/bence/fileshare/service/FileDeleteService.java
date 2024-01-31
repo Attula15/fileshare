@@ -1,5 +1,9 @@
 package com.bence.fileshare.service;
 
+import com.bence.fileshare.entity.DeletedFilesEntity;
+import com.bence.fileshare.entity.UsersEntity;
+import com.bence.fileshare.repository.DeletedFilesRepository;
+import com.bence.fileshare.repository.UsersRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
@@ -7,15 +11,21 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class FileDeleteService {
 
     private final DirectoryManagerService directoryManagerService;
+    private final DeletedFilesRepository deletedFilesRepository;
+    private final UsersRepository usersRepository;
 
-    public FileDeleteService(DirectoryManagerService directoryManagerService) {
+    public FileDeleteService(DirectoryManagerService directoryManagerService, DeletedFilesRepository deletedFilesRepository, UsersRepository usersRepository) {
         this.directoryManagerService = directoryManagerService;
+        this.deletedFilesRepository = deletedFilesRepository;
+        this.usersRepository = usersRepository;
     }
 
     private boolean copyWithSizeCheck(File toBeCopiedFile, File destinationFile) throws IOException {
@@ -61,7 +71,10 @@ public class FileDeleteService {
             throw new Exception("The following file could not be placed inside the trash: " + toBeDeletedFile.getPath());
         }
 
-        //TODO There is going to be a database row insert here. About which file was successfully copied, so that it later can be maintained.
+        Optional<UsersEntity> user = usersRepository.findOneByName("admin");
+        DeletedFilesEntity deletedFile = new DeletedFilesEntity(LocalDateTime.now(), user.orElse(new UsersEntity("NotAUser")), toBeDeletedFile.getName(), toBeDeletedFile.getPath());
+
+        deletedFilesRepository.save(deletedFile);
 
         return true;
     }

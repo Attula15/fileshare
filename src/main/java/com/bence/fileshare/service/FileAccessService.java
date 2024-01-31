@@ -24,11 +24,11 @@ import java.util.Map;
 @Slf4j
 public class FileAccessService {
     private final DirectoryManagerService directoryManagerService;
-    private final InitializerService initializerService;
+    private final FileDeleteService fileDeleteService;
 
-    public FileAccessService(DirectoryManagerService directoryManagerService, InitializerService initializerService) {
+    public FileAccessService(DirectoryManagerService directoryManagerService, FileDeleteService fileDeleteService) {
         this.directoryManagerService = directoryManagerService;
-        this.initializerService = initializerService;
+        this.fileDeleteService = fileDeleteService;
     }
 
     private String addGivenPathToRootFoldersPath(String filePath){
@@ -155,7 +155,7 @@ public class FileAccessService {
         return Map.of("Failure", "The folder could not be created.");
     }
 
-    private void deleteFilesRecursively(String folderPath){
+    private void deleteFilesRecursively(String folderPath) throws Exception {
         File toBeDeletedFile = new File(folderPath);
         if(!toBeDeletedFile.canWrite()){
             log.error("Insufficient permission for the give file: " + toBeDeletedFile.getPath());
@@ -168,10 +168,11 @@ public class FileAccessService {
             }
         }
         log.warn("Deleting " + toBeDeletedFile.getPath());
-        toBeDeletedFile.delete();
+        fileDeleteService.deleteFile(toBeDeletedFile.getPath());
+        //toBeDeletedFile.delete();
     }
 
-    public Map<String, String> delete(String filePath) throws SecurityException{
+    public Map<String, String> delete(String filePath) throws Exception {
         log.info("Deleting: " + filePath);
         filePath = addGivenPathToRootFoldersPath(filePath);
 
@@ -193,7 +194,7 @@ public class FileAccessService {
             deleteFilesRecursively(toBeDeletedFile.getPath());
         }
 
-        boolean success = toBeDeletedFile.delete();
+        boolean success = fileDeleteService.deleteFile(toBeDeletedFile.getPath());
         if(success){
             return Map.of("Success", "The file: "+ filePath +" has been deleted.");
         }

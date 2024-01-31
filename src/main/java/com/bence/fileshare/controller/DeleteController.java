@@ -20,7 +20,7 @@ public class DeleteController {
     }
 
     @DeleteMapping()
-    public ResponseEntity<String> delete(@RequestParam(name = "filePath", defaultValue = "") String filePath) throws SecurityException{
+    public ResponseEntity<String> delete(@RequestParam(name = "filePath", defaultValue = "") String filePath) throws Exception {
         Map<String, String> result = fileAccessService.delete(filePath);
 
         if(result.containsKey("Failure")){

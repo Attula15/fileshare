@@ -30,8 +30,7 @@ public class DeletedFilesEntity {
     public DeletedFilesEntity() {
     }
 
-    public DeletedFilesEntity(Long id, LocalDateTime deleteDate, UsersEntity user, String fileName, String originalFilePath) {
-        this.id = id;
+    public DeletedFilesEntity(LocalDateTime deleteDate, UsersEntity user, String fileName, String originalFilePath) {
         this.deleteDate = deleteDate;
         this.user = user;
         this.fileName = fileName;
